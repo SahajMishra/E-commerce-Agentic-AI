@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agent run progress</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+    body { max-width: 52rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+    h1 { font-size: 1.25rem; font-weight: 600; }
+    .row { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin: 1rem 0; }
+    button {
+      padding: 0.45rem 1rem;
+      border-radius: 6px;
+      border: 1px solid #8888;
+      background: #3b82f6;
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+    .meta { font-size: 0.9rem; opacity: 0.85; }
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: #8883;
+      overflow: hidden;
+      margin: 0.5rem 0 1rem;
+    }
+    .bar > i { display: block; height: 100%; background: #22c55e; width: 0%; transition: width 0.2s ease; }
+    #log {
+      border: 1px solid #8884;
+      border-radius: 8px;
+      padding: 0.75rem;
+      max-height: 22rem;
+      overflow-y: auto;
+      font-family: ui-monospace, monospace;
+      font-size: 0.8rem;
+      background: #0000000a;
+    }
+    .evt { margin: 0.15rem 0; white-space: pre-wrap; word-break: break-word; }
+    .err { color: #ef4444; }
+    .ok { color: #16a34a; }
+  </style>
+</head>
+<body>
+  <h1>Support agent — run progress</h1>
+  <p class="meta">Start a run, then this page polls the server for live counts and a short event log.</p>
+  <div class="row">
+    <button id="start" type="button">Start processing</button>
+    <span id="status" class="meta">Idle</span>
+  </div>
+  <div class="meta" id="counts">Completed 0 / 0 · failed 0</div>
+  <div class="bar" aria-hidden="true"><i id="fill"></i></div>
+  <div id="log"></div>
+  <script>
+    const startBtn = document.getElementById("start");
+    const statusEl = document.getElementById("status");
+    const countsEl = document.getElementById("counts");
+    const fillEl = document.getElementById("fill");
+    const logEl = document.getElementById("log");
+    let pollTimer = null;
+
+    function setBar(completed, total) {
+      const pct = total > 0 ? Math.min(100, (completed / total) * 100) : 0;
+      fillEl.style.width = pct + "%";
+    }
+
+    function renderEvents(events) {
+      logEl.textContent = "";
+      const slice = events.slice(-80);
+      for (const e of slice) {
+        const line = document.createElement("div");
+        line.className = "evt";
+        let text = e.type;
+        if (e.ticket_id != null) text += " · " + e.ticket_id;
+        if (e.worker_id != null) text += " · worker " + e.worker_id;
+        if (e.summary != null) text += " · " + e.summary;
+        if (e.reason != null) text += " · " + e.reason;
+        if (e.type === "ticket_error" || e.type === "run_error") line.classList.add("err");
+        if (e.type === "ticket_finished" && e.success) line.classList.add("ok");
+        line.textContent = text;
+        logEl.appendChild(line);
+      }
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    async function refresh() {
+      const res = await fetch("/api/progress");
+      if (!res.ok) return;
+      const data = await res.json();
+      const { running, total, completed, failed, events } = data;
+      countsEl.textContent = "Completed " + completed + " / " + total + " · failed " + failed;
+      setBar(completed, total);
+      if (running) {
+        statusEl.textContent = "Running…";
+        startBtn.disabled = true;
+      } else {
+        statusEl.textContent = total ? "Finished" : "Idle";
+        startBtn.disabled = false;
+      }
+      renderEvents(events || []);
+      if (!running && pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    }
+
+    startBtn.addEventListener("click", async () => {
+      startBtn.disabled = true;
+      statusEl.textContent = "Starting…";
+      const res = await fetch("/api/run", { method: "POST" });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        statusEl.textContent = body.message || "Could not start";
+        startBtn.disabled = false;
+        return;
+      }
+      if (!pollTimer) pollTimer = setInterval(refresh, 400);
+      await refresh();
+    });
+
+    refresh();
+    setInterval(() => {
+      if (pollTimer) return;
+      fetch("/api/progress")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.running && !pollTimer) {
+            pollTimer = setInterval(refresh, 400);
+            refresh();
+          }
+        })
+        .catch(() => {});
+    }, 2000);
+  </script>
+</body>
+</html>
