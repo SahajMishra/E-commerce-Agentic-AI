@@ -1,5 +1,189 @@
 [
   {
+    "ticket_id": "TKT-002",
+    "worker_id": 2,
+    "classification": {
+      "category": "refund_or_return",
+      "urgency": "low",
+      "resolvability": "needs_clarification"
+    },
+    "steps_taken": [
+      {
+        "thought": "Verify customer profile and tier in system.",
+        "action": "get_customer({'email': 'bob.mendes@email.com'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "Fetch order details to validate claim.",
+        "action": "get_order({'order_id': 'ORD-1002'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "Fetch product-specific policy constraints.",
+        "action": "get_product({'product_id': 'P006'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "Policy requires eligibility check before refund.",
+        "action": "check_refund_eligibility({'order_id': 'ORD-1002'})",
+        "observation": "Tool execution failed"
+      },
+      {
+        "thought": "Policy requires eligibility check before refund.",
+        "action": "check_refund_eligibility({'order_id': 'ORD-1002'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "Collect policy snippets for explainable response.",
+        "action": "search_knowledge_base({'query': 'I want to return my watch'})",
+        "observation": "Tool execution succeeded"
+      }
+    ],
+    "tool_calls": [
+      {
+        "name": "get_customer",
+        "inputs": {
+          "email": "bob.mendes@email.com"
+        },
+        "output": {
+          "customer_id": "C002",
+          "name": "Bob Mendes",
+          "email": "bob.mendes@email.com",
+          "phone": "+1-212-555-0198",
+          "tier": "standard",
+          "member_since": "2023-10-05",
+          "total_orders": 3,
+          "total_spent": 210.0,
+          "address": {
+            "street": "88 Birch Street",
+            "city": "New York",
+            "state": "NY",
+            "zip": "10001"
+          },
+          "notes": "New customer. No prior refund history."
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "get_order",
+        "inputs": {
+          "order_id": "ORD-1002"
+        },
+        "output": {
+          "order_id": "ORD-1002",
+          "customer_id": "C002",
+          "product_id": "P006",
+          "quantity": 1,
+          "amount": 249.99,
+          "status": "delivered",
+          "order_date": "2024-03-01",
+          "delivery_date": "2024-03-04",
+          "return_deadline": "2024-03-19",
+          "refund_status": null,
+          "notes": "High-value item. 15-day return window applies."
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "get_product",
+        "inputs": {
+          "product_id": "P006"
+        },
+        "output": {
+          "product_id": "P006",
+          "name": "PulseX Smart Watch",
+          "category": "electronics",
+          "price": 249.99,
+          "warranty_months": 12,
+          "return_window_days": 15,
+          "returnable": true,
+          "notes": "Only 15-day return window due to high-value electronics policy. Warranty covers hardware defects."
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "check_refund_eligibility",
+        "inputs": {
+          "order_id": "ORD-1002"
+        },
+        "output": {
+          "error": "check_refund_eligibility: missing keys ['order_id', 'eligible', 'reason']",
+          "tool": "check_refund_eligibility"
+        },
+        "success": false,
+        "error": "check_refund_eligibility: missing keys ['order_id', 'eligible', 'reason']"
+      },
+      {
+        "name": "check_refund_eligibility",
+        "inputs": {
+          "order_id": "ORD-1002"
+        },
+        "output": {
+          "order_id": "ORD-1002",
+          "eligible": true,
+          "reason": "within_policy",
+          "max_refund_amount": 249.99
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "search_knowledge_base",
+        "inputs": {
+          "query": "I want to return my watch"
+        },
+        "output": {
+          "results": [
+            {
+              "id": "KB-MASTER",
+              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
+            }
+          ]
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "escalate",
+        "inputs": {
+          "ticket_id": "TKT-002",
+          "summary": "Issue: I want to return my watch. Classification: {'category': 'refund_or_return', 'urgency': 'low', 'resolvability': 'needs_clarification'}. Checks: get_customer:ok, get_order:ok, get_product:ok, check_refund_eligibility:fail, check_refund_eligibility:ok, search_knowledge_base:ok. Recommendation: Refund amount exceeds $200 threshold.",
+          "priority": "high"
+        },
+        "output": {
+          "error": "escalate: missing keys ['success', 'priority']",
+          "tool": "escalate"
+        },
+        "success": false,
+        "error": "escalate: missing keys ['success', 'priority']"
+      },
+      {
+        "name": "send_reply",
+        "inputs": {
+          "ticket_id": "TKT-002",
+          "message": "Your case needs specialist review. We've escalated it and will follow up shortly."
+        },
+        "output": {
+          "success": true,
+          "reply_id": "RPL-TKT-002",
+          "ticket_id": "TKT-002"
+        },
+        "success": true,
+        "error": null
+      }
+    ],
+    "reasoning_summary": "Processed via iterative planner with 8 tool calls.",
+    "final_decision": {
+      "action": "escalate",
+      "details": "Refund amount exceeds $200 threshold.",
+      "priority": "high"
+    },
+    "confidence_score": 0.9
+  },
+  {
     "ticket_id": "TKT-001",
     "worker_id": 1,
     "classification": {
@@ -32,6 +216,11 @@
         "thought": "Collect policy snippets for explainable response.",
         "action": "search_knowledge_base({'query': 'Refund request for headphones'})",
         "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "Refund double-check (Gemini).",
+        "action": "refund_safety_check",
+        "observation": "Approved"
       }
     ],
     "tool_calls": [
@@ -153,12 +342,11 @@
           "message": "We approved your refund for order ORD-1001. Funds typically appear in 5-7 business days."
         },
         "output": {
-          "success": true,
-          "reply_id": "RPL-TKT-001",
-          "ticket_id": "TKT-001"
+          "error": "send_reply: missing keys ['success', 'ticket_id']",
+          "tool": "send_reply"
         },
-        "success": true,
-        "error": null
+        "success": false,
+        "error": "send_reply: missing keys ['success', 'ticket_id']"
       }
     ],
     "reasoning_summary": "Processed via iterative planner with 7 tool calls.",
@@ -166,144 +354,11 @@
       "action": "refund_issued",
       "details": "Refund approved after eligibility check."
     },
-    "confidence_score": 0.99
-  },
-  {
-    "ticket_id": "TKT-005",
-    "worker_id": 5,
-    "classification": {
-      "category": "refund_or_return",
-      "urgency": "medium",
-      "resolvability": "needs_clarification"
-    },
-    "steps_taken": [
-      {
-        "thought": "Verify customer profile and tier in system.",
-        "action": "get_customer({'email': 'emma.collins@email.com'})",
-        "observation": "Tool execution succeeded"
-      },
-      {
-        "thought": "Fetch order details to validate claim.",
-        "action": "get_order({'order_id': 'ORD-1005'})",
-        "observation": "Tool execution succeeded"
-      },
-      {
-        "thought": "Fetch product-specific policy constraints.",
-        "action": "get_product({'product_id': 'P008'})",
-        "observation": "Tool execution succeeded"
-      },
-      {
-        "thought": "Collect policy snippets for explainable response.",
-        "action": "search_knowledge_base({'query': 'Return request'})",
-        "observation": "Tool execution succeeded"
-      }
-    ],
-    "tool_calls": [
-      {
-        "name": "get_customer",
-        "inputs": {
-          "email": "emma.collins@email.com"
-        },
-        "output": {
-          "customer_id": "C005",
-          "name": "Emma Collins",
-          "email": "emma.collins@email.com",
-          "phone": "+1-512-555-0165",
-          "tier": "vip",
-          "member_since": "2018-11-02",
-          "total_orders": 91,
-          "total_spent": 14220.0,
-          "address": {
-            "street": "7 Sunset Blvd",
-            "city": "Austin",
-            "state": "TX",
-            "zip": "73301"
-          },
-          "notes": "Highest lifetime value customer. Has a standing exception for extended return windows pre-approved by management."
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "get_order",
-        "inputs": {
-          "order_id": "ORD-1005"
-        },
-        "output": {
-          "order_id": "ORD-1005",
-          "customer_id": "C005",
-          "product_id": "P008",
-          "quantity": 2,
-          "amount": 159.98,
-          "status": "delivered",
-          "order_date": "2023-12-15",
-          "delivery_date": "2023-12-19",
-          "return_deadline": "2024-01-18",
-          "refund_status": null,
-          "notes": "Return window expired. VIP customer with pre-approved extended return exception on file."
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "get_product",
-        "inputs": {
-          "product_id": "P008"
-        },
-        "output": {
-          "product_id": "P008",
-          "name": "BoomBox Mini Bluetooth Speaker",
-          "category": "electronics",
-          "price": 79.99,
-          "warranty_months": 12,
-          "return_window_days": 30,
-          "returnable": true,
-          "notes": "Return not accepted if device has been registered online."
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "search_knowledge_base",
-        "inputs": {
-          "query": "Return request"
-        },
-        "output": {
-          "results": [
-            {
-              "id": "KB-MASTER",
-              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
-            }
-          ]
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "send_reply",
-        "inputs": {
-          "ticket_id": "TKT-005",
-          "message": "Please share a bit more detail so we can resolve this quickly."
-        },
-        "output": {
-          "success": true,
-          "reply_id": "RPL-TKT-005",
-          "ticket_id": "TKT-005"
-        },
-        "success": true,
-        "error": null
-      }
-    ],
-    "reasoning_summary": "Processed via iterative planner with 5 tool calls.",
-    "final_decision": {
-      "action": "reply_sent",
-      "details": "Please share a bit more detail so we can resolve this quickly."
-    },
-    "confidence_score": 0.86
+    "confidence_score": 0.92
   },
   {
     "ticket_id": "TKT-004",
-    "worker_id": 4,
+    "worker_id": 1,
     "classification": {
       "category": "refund_or_return",
       "urgency": "high",
@@ -470,176 +525,8 @@
     "confidence_score": 1.0
   },
   {
-    "ticket_id": "TKT-002",
-    "worker_id": 2,
-    "classification": {
-      "category": "refund_or_return",
-      "urgency": "low",
-      "resolvability": "needs_clarification"
-    },
-    "steps_taken": [
-      {
-        "thought": "Verify customer profile and tier in system.",
-        "action": "get_customer({'email': 'bob.mendes@email.com'})",
-        "observation": "Tool execution succeeded"
-      },
-      {
-        "thought": "Fetch order details to validate claim.",
-        "action": "get_order({'order_id': 'ORD-1002'})",
-        "observation": "Tool execution succeeded"
-      },
-      {
-        "thought": "Fetch product-specific policy constraints.",
-        "action": "get_product({'product_id': 'P006'})",
-        "observation": "Tool execution succeeded"
-      },
-      {
-        "thought": "Policy requires eligibility check before refund.",
-        "action": "check_refund_eligibility({'order_id': 'ORD-1002'})",
-        "observation": "Tool execution succeeded"
-      },
-      {
-        "thought": "Collect policy snippets for explainable response.",
-        "action": "search_knowledge_base({'query': 'I want to return my watch'})",
-        "observation": "Tool execution succeeded"
-      }
-    ],
-    "tool_calls": [
-      {
-        "name": "get_customer",
-        "inputs": {
-          "email": "bob.mendes@email.com"
-        },
-        "output": {
-          "customer_id": "C002",
-          "name": "Bob Mendes",
-          "email": "bob.mendes@email.com",
-          "phone": "+1-212-555-0198",
-          "tier": "standard",
-          "member_since": "2023-10-05",
-          "total_orders": 3,
-          "total_spent": 210.0,
-          "address": {
-            "street": "88 Birch Street",
-            "city": "New York",
-            "state": "NY",
-            "zip": "10001"
-          },
-          "notes": "New customer. No prior refund history."
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "get_order",
-        "inputs": {
-          "order_id": "ORD-1002"
-        },
-        "output": {
-          "order_id": "ORD-1002",
-          "customer_id": "C002",
-          "product_id": "P006",
-          "quantity": 1,
-          "amount": 249.99,
-          "status": "delivered",
-          "order_date": "2024-03-01",
-          "delivery_date": "2024-03-04",
-          "return_deadline": "2024-03-19",
-          "refund_status": null,
-          "notes": "High-value item. 15-day return window applies."
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "get_product",
-        "inputs": {
-          "product_id": "P006"
-        },
-        "output": {
-          "product_id": "P006",
-          "name": "PulseX Smart Watch",
-          "category": "electronics",
-          "price": 249.99,
-          "warranty_months": 12,
-          "return_window_days": 15,
-          "returnable": true,
-          "notes": "Only 15-day return window due to high-value electronics policy. Warranty covers hardware defects."
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "check_refund_eligibility",
-        "inputs": {
-          "order_id": "ORD-1002"
-        },
-        "output": {
-          "order_id": "ORD-1002",
-          "eligible": true,
-          "reason": "within_policy",
-          "max_refund_amount": 249.99
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "search_knowledge_base",
-        "inputs": {
-          "query": "I want to return my watch"
-        },
-        "output": {
-          "results": [
-            {
-              "id": "KB-MASTER",
-              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
-            }
-          ]
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "escalate",
-        "inputs": {
-          "ticket_id": "TKT-002",
-          "summary": "Issue: I want to return my watch. Classification: {'category': 'refund_or_return', 'urgency': 'low', 'resolvability': 'needs_clarification'}. Checks: get_customer:ok, get_order:ok, get_product:ok, check_refund_eligibility:ok, search_knowledge_base:ok. Recommendation: Refund amount exceeds $200 threshold.",
-          "priority": "high"
-        },
-        "output": {
-          "success": true,
-          "escalation_id": "ESC-TKT-002",
-          "priority": "high"
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "send_reply",
-        "inputs": {
-          "ticket_id": "TKT-002",
-          "message": "Your case needs specialist review. We've escalated it and will follow up shortly."
-        },
-        "output": {
-          "success": true,
-          "reply_id": "RPL-TKT-002",
-          "ticket_id": "TKT-002"
-        },
-        "success": true,
-        "error": null
-      }
-    ],
-    "reasoning_summary": "Processed via iterative planner with 7 tool calls.",
-    "final_decision": {
-      "action": "escalate",
-      "details": "Refund amount exceeds $200 threshold.",
-      "priority": "high"
-    },
-    "confidence_score": 1.0
-  },
-  {
     "ticket_id": "TKT-003",
-    "worker_id": 3,
+    "worker_id": 2,
     "classification": {
       "category": "damaged_or_defective",
       "urgency": "low",
@@ -801,52 +688,32 @@
     "confidence_score": 1.0
   },
   {
-    "ticket_id": "TKT-006",
-    "worker_id": 6,
+    "ticket_id": "TKT-005",
+    "worker_id": 1,
     "classification": {
-      "category": "cancellation",
-      "urgency": "low",
+      "category": "refund_or_return",
+      "urgency": "medium",
       "resolvability": "needs_clarification"
     },
     "steps_taken": [
       {
         "thought": "Verify customer profile and tier in system.",
-        "action": "get_customer({'email': 'frank.osei@email.com'})",
+        "action": "get_customer({'email': 'emma.collins@email.com'})",
         "observation": "Tool execution succeeded"
       },
       {
-        "thought": "No order ID found; pull policy guidance.",
-        "action": "search_knowledge_base({'query': 'I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?'})",
+        "thought": "Fetch order details to validate claim.",
+        "action": "get_order({'order_id': 'ORD-1005'})",
         "observation": "Tool execution succeeded"
       },
       {
-        "thought": "No order ID found; pull policy guidance.",
-        "action": "search_knowledge_base({'query': 'I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?'})",
+        "thought": "Fetch product-specific policy constraints.",
+        "action": "get_product({'product_id': 'P008'})",
         "observation": "Tool execution succeeded"
       },
       {
-        "thought": "No order ID found; pull policy guidance.",
-        "action": "search_knowledge_base({'query': 'I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?'})",
-        "observation": "Tool execution succeeded"
-      },
-      {
-        "thought": "No order ID found; pull policy guidance.",
-        "action": "search_knowledge_base({'query': 'I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?'})",
-        "observation": "Tool execution succeeded"
-      },
-      {
-        "thought": "No order ID found; pull policy guidance.",
-        "action": "search_knowledge_base({'query': 'I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?'})",
-        "observation": "Tool execution failed"
-      },
-      {
-        "thought": "No order ID found; pull policy guidance.",
-        "action": "search_knowledge_base({'query': 'I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?'})",
-        "observation": "Tool execution succeeded"
-      },
-      {
-        "thought": "No order ID found; pull policy guidance.",
-        "action": "search_knowledge_base({'query': 'I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?'})",
+        "thought": "Collect policy snippets for explainable response.",
+        "action": "search_knowledge_base({'query': 'Return request'})",
         "observation": "Tool execution succeeded"
       }
     ],
@@ -854,24 +721,63 @@
       {
         "name": "get_customer",
         "inputs": {
-          "email": "frank.osei@email.com"
+          "email": "emma.collins@email.com"
         },
         "output": {
-          "customer_id": "C006",
-          "name": "Frank Osei",
-          "email": "frank.osei@email.com",
-          "phone": "+1-404-555-0112",
-          "tier": "standard",
-          "member_since": "2024-01-14",
-          "total_orders": 1,
-          "total_spent": 49.99,
+          "customer_id": "C005",
+          "name": "Emma Collins",
+          "email": "emma.collins@email.com",
+          "phone": "+1-512-555-0165",
+          "tier": "vip",
+          "member_since": "2018-11-02",
+          "total_orders": 91,
+          "total_spent": 14220.0,
           "address": {
-            "street": "19 Elm Street",
-            "city": "Atlanta",
-            "state": "GA",
-            "zip": "30301"
+            "street": "7 Sunset Blvd",
+            "city": "Austin",
+            "state": "TX",
+            "zip": "73301"
           },
-          "notes": "Brand new customer. First and only order."
+          "notes": "Highest lifetime value customer. Has a standing exception for extended return windows pre-approved by management."
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "get_order",
+        "inputs": {
+          "order_id": "ORD-1005"
+        },
+        "output": {
+          "order_id": "ORD-1005",
+          "customer_id": "C005",
+          "product_id": "P008",
+          "quantity": 2,
+          "amount": 159.98,
+          "status": "delivered",
+          "order_date": "2023-12-15",
+          "delivery_date": "2023-12-19",
+          "return_deadline": "2024-01-18",
+          "refund_status": null,
+          "notes": "Return window expired. VIP customer with pre-approved extended return exception on file."
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "get_product",
+        "inputs": {
+          "product_id": "P008"
+        },
+        "output": {
+          "product_id": "P008",
+          "name": "BoomBox Mini Bluetooth Speaker",
+          "category": "electronics",
+          "price": 79.99,
+          "warranty_months": 12,
+          "return_window_days": 30,
+          "returnable": true,
+          "notes": "Return not accepted if device has been registered online."
         },
         "success": true,
         "error": null
@@ -879,99 +785,7 @@
       {
         "name": "search_knowledge_base",
         "inputs": {
-          "query": "I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?"
-        },
-        "output": {
-          "results": [
-            {
-              "id": "KB-MASTER",
-              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
-            }
-          ]
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "search_knowledge_base",
-        "inputs": {
-          "query": "I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?"
-        },
-        "output": {
-          "results": [
-            {
-              "id": "KB-MASTER",
-              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
-            }
-          ]
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "search_knowledge_base",
-        "inputs": {
-          "query": "I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?"
-        },
-        "output": {
-          "results": [
-            {
-              "id": "KB-MASTER",
-              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
-            }
-          ]
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "search_knowledge_base",
-        "inputs": {
-          "query": "I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?"
-        },
-        "output": {
-          "results": [
-            {
-              "id": "KB-MASTER",
-              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
-            }
-          ]
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "search_knowledge_base",
-        "inputs": {
-          "query": "I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?"
-        },
-        "output": {
-          "error": "search_knowledge_base: missing keys ['results']",
-          "tool": "search_knowledge_base"
-        },
-        "success": false,
-        "error": "search_knowledge_base: missing keys ['results']"
-      },
-      {
-        "name": "search_knowledge_base",
-        "inputs": {
-          "query": "I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?"
-        },
-        "output": {
-          "results": [
-            {
-              "id": "KB-MASTER",
-              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
-            }
-          ]
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "search_knowledge_base",
-        "inputs": {
-          "query": "I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?"
+          "query": "Return request"
         },
         "output": {
           "results": [
@@ -987,24 +801,24 @@
       {
         "name": "send_reply",
         "inputs": {
-          "ticket_id": "TKT-006",
+          "ticket_id": "TKT-005",
           "message": "Please share a bit more detail so we can resolve this quickly."
         },
         "output": {
           "success": true,
-          "reply_id": "RPL-TKT-006",
-          "ticket_id": "TKT-006"
+          "reply_id": "RPL-TKT-005",
+          "ticket_id": "TKT-005"
         },
         "success": true,
         "error": null
       }
     ],
-    "reasoning_summary": "Processed via iterative planner with 9 tool calls.",
+    "reasoning_summary": "Processed via iterative planner with 5 tool calls.",
     "final_decision": {
       "action": "reply_sent",
       "details": "Please share a bit more detail so we can resolve this quickly."
     },
-    "confidence_score": 0.73
+    "confidence_score": 0.86
   },
   {
     "ticket_id": "TKT-007",
@@ -1140,8 +954,345 @@
     "confidence_score": 0.86
   },
   {
-    "ticket_id": "TKT-010",
+    "ticket_id": "TKT-006",
     "worker_id": 2,
+    "classification": {
+      "category": "cancellation",
+      "urgency": "low",
+      "resolvability": "needs_clarification"
+    },
+    "steps_taken": [
+      {
+        "thought": "Verify customer profile and tier in system.",
+        "action": "get_customer({'email': 'frank.osei@email.com'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "No order ID found; pull policy guidance.",
+        "action": "search_knowledge_base({'query': 'I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "No order ID found; pull policy guidance.",
+        "action": "search_knowledge_base({'query': 'I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "No order ID found; pull policy guidance.",
+        "action": "search_knowledge_base({'query': 'I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "No order ID found; pull policy guidance.",
+        "action": "search_knowledge_base({'query': 'I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "No order ID found; pull policy guidance.",
+        "action": "search_knowledge_base({'query': 'I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "No order ID found; pull policy guidance.",
+        "action": "search_knowledge_base({'query': 'I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "No order ID found; pull policy guidance.",
+        "action": "search_knowledge_base({'query': 'I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?'})",
+        "observation": "Tool execution succeeded"
+      }
+    ],
+    "tool_calls": [
+      {
+        "name": "get_customer",
+        "inputs": {
+          "email": "frank.osei@email.com"
+        },
+        "output": {
+          "customer_id": "C006",
+          "name": "Frank Osei",
+          "email": "frank.osei@email.com",
+          "phone": "+1-404-555-0112",
+          "tier": "standard",
+          "member_since": "2024-01-14",
+          "total_orders": 1,
+          "total_spent": 49.99,
+          "address": {
+            "street": "19 Elm Street",
+            "city": "Atlanta",
+            "state": "GA",
+            "zip": "30301"
+          },
+          "notes": "Brand new customer. First and only order."
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "search_knowledge_base",
+        "inputs": {
+          "query": "I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?"
+        },
+        "output": {
+          "results": [
+            {
+              "id": "KB-MASTER",
+              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
+            }
+          ]
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "search_knowledge_base",
+        "inputs": {
+          "query": "I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?"
+        },
+        "output": {
+          "results": [
+            {
+              "id": "KB-MASTER",
+              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
+            }
+          ]
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "search_knowledge_base",
+        "inputs": {
+          "query": "I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?"
+        },
+        "output": {
+          "results": [
+            {
+              "id": "KB-MASTER",
+              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
+            }
+          ]
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "search_knowledge_base",
+        "inputs": {
+          "query": "I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?"
+        },
+        "output": {
+          "results": [
+            {
+              "id": "KB-MASTER",
+              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
+            }
+          ]
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "search_knowledge_base",
+        "inputs": {
+          "query": "I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?"
+        },
+        "output": {
+          "results": [
+            {
+              "id": "KB-MASTER",
+              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
+            }
+          ]
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "search_knowledge_base",
+        "inputs": {
+          "query": "I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?"
+        },
+        "output": {
+          "results": [
+            {
+              "id": "KB-MASTER",
+              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
+            }
+          ]
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "search_knowledge_base",
+        "inputs": {
+          "query": "I want to cancel Hey, I just placed an order and I want to cancel it. Can you do that?"
+        },
+        "output": {
+          "results": [
+            {
+              "id": "KB-MASTER",
+              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
+            }
+          ]
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "send_reply",
+        "inputs": {
+          "ticket_id": "TKT-006",
+          "message": "Please share a bit more detail so we can resolve this quickly."
+        },
+        "output": {
+          "success": true,
+          "reply_id": "RPL-TKT-006",
+          "ticket_id": "TKT-006"
+        },
+        "success": true,
+        "error": null
+      }
+    ],
+    "reasoning_summary": "Processed via iterative planner with 9 tool calls.",
+    "final_decision": {
+      "action": "reply_sent",
+      "details": "Please share a bit more detail so we can resolve this quickly."
+    },
+    "confidence_score": 0.78
+  },
+  {
+    "ticket_id": "TKT-008",
+    "worker_id": 1,
+    "classification": {
+      "category": "damaged_or_defective",
+      "urgency": "low",
+      "resolvability": "needs_clarification"
+    },
+    "steps_taken": [
+      {
+        "thought": "Verify customer profile and tier in system.",
+        "action": "get_customer({'email': 'henry.marsh@email.com'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "Fetch order details to validate claim.",
+        "action": "get_order({'order_id': 'ORD-1008'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "Fetch product-specific policy constraints.",
+        "action": "get_product({'product_id': 'P007'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "Collect policy snippets for explainable response.",
+        "action": "search_knowledge_base({'query': 'Lamp came broken'})",
+        "observation": "Tool execution succeeded"
+      }
+    ],
+    "tool_calls": [
+      {
+        "name": "get_customer",
+        "inputs": {
+          "email": "henry.marsh@email.com"
+        },
+        "output": {
+          "customer_id": "C008",
+          "name": "Henry Marsh",
+          "email": "henry.marsh@email.com",
+          "phone": "+1-303-555-0188",
+          "tier": "standard",
+          "member_since": "2022-05-19",
+          "total_orders": 14,
+          "total_spent": 1120.6,
+          "address": {
+            "street": "210 Cedar Drive",
+            "city": "Denver",
+            "state": "CO",
+            "zip": "80201"
+          },
+          "notes": "Regular customer. No flags."
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "get_order",
+        "inputs": {
+          "order_id": "ORD-1008"
+        },
+        "output": {
+          "order_id": "ORD-1008",
+          "customer_id": "C008",
+          "product_id": "P007",
+          "quantity": 1,
+          "amount": 44.99,
+          "status": "delivered",
+          "order_date": "2024-03-05",
+          "delivery_date": "2024-03-08",
+          "return_deadline": "2024-04-07",
+          "refund_status": null,
+          "notes": "Item reported as damaged on arrival by customer via email. No formal claim opened."
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "get_product",
+        "inputs": {
+          "product_id": "P007"
+        },
+        "output": {
+          "product_id": "P007",
+          "name": "LumiDesk LED Desk Lamp",
+          "category": "home",
+          "price": 44.99,
+          "warranty_months": 12,
+          "return_window_days": 30,
+          "returnable": true,
+          "notes": "Standard return policy applies."
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "search_knowledge_base",
+        "inputs": {
+          "query": "Lamp came broken"
+        },
+        "output": {
+          "results": []
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "send_reply",
+        "inputs": {
+          "ticket_id": "TKT-008",
+          "message": "Please share a bit more detail so we can resolve this quickly."
+        },
+        "output": {
+          "error": "send_reply: missing keys ['success', 'ticket_id']",
+          "tool": "send_reply"
+        },
+        "success": false,
+        "error": "send_reply: missing keys ['success', 'ticket_id']"
+      }
+    ],
+    "reasoning_summary": "Processed via iterative planner with 5 tool calls.",
+    "final_decision": {
+      "action": "reply_sent",
+      "details": "Please share a bit more detail so we can resolve this quickly."
+    },
+    "confidence_score": 0.78
+  },
+  {
+    "ticket_id": "TKT-010",
+    "worker_id": 1,
     "classification": {
       "category": "shipping_status",
       "urgency": "low",
@@ -1273,136 +1424,8 @@
     "confidence_score": 0.86
   },
   {
-    "ticket_id": "TKT-008",
-    "worker_id": 5,
-    "classification": {
-      "category": "damaged_or_defective",
-      "urgency": "low",
-      "resolvability": "needs_clarification"
-    },
-    "steps_taken": [
-      {
-        "thought": "Verify customer profile and tier in system.",
-        "action": "get_customer({'email': 'henry.marsh@email.com'})",
-        "observation": "Tool execution succeeded"
-      },
-      {
-        "thought": "Fetch order details to validate claim.",
-        "action": "get_order({'order_id': 'ORD-1008'})",
-        "observation": "Tool execution succeeded"
-      },
-      {
-        "thought": "Fetch product-specific policy constraints.",
-        "action": "get_product({'product_id': 'P007'})",
-        "observation": "Tool execution succeeded"
-      },
-      {
-        "thought": "Collect policy snippets for explainable response.",
-        "action": "search_knowledge_base({'query': 'Lamp came broken'})",
-        "observation": "Tool execution succeeded"
-      }
-    ],
-    "tool_calls": [
-      {
-        "name": "get_customer",
-        "inputs": {
-          "email": "henry.marsh@email.com"
-        },
-        "output": {
-          "customer_id": "C008",
-          "name": "Henry Marsh",
-          "email": "henry.marsh@email.com",
-          "phone": "+1-303-555-0188",
-          "tier": "standard",
-          "member_since": "2022-05-19",
-          "total_orders": 14,
-          "total_spent": 1120.6,
-          "address": {
-            "street": "210 Cedar Drive",
-            "city": "Denver",
-            "state": "CO",
-            "zip": "80201"
-          },
-          "notes": "Regular customer. No flags."
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "get_order",
-        "inputs": {
-          "order_id": "ORD-1008"
-        },
-        "output": {
-          "order_id": "ORD-1008",
-          "customer_id": "C008",
-          "product_id": "P007",
-          "quantity": 1,
-          "amount": 44.99,
-          "status": "delivered",
-          "order_date": "2024-03-05",
-          "delivery_date": "2024-03-08",
-          "return_deadline": "2024-04-07",
-          "refund_status": null,
-          "notes": "Item reported as damaged on arrival by customer via email. No formal claim opened."
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "get_product",
-        "inputs": {
-          "product_id": "P007"
-        },
-        "output": {
-          "product_id": "P007",
-          "name": "LumiDesk LED Desk Lamp",
-          "category": "home",
-          "price": 44.99,
-          "warranty_months": 12,
-          "return_window_days": 30,
-          "returnable": true,
-          "notes": "Standard return policy applies."
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "search_knowledge_base",
-        "inputs": {
-          "query": "Lamp came broken"
-        },
-        "output": {
-          "results": []
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "send_reply",
-        "inputs": {
-          "ticket_id": "TKT-008",
-          "message": "Please share a bit more detail so we can resolve this quickly."
-        },
-        "output": {
-          "success": true,
-          "reply_id": "RPL-TKT-008",
-          "ticket_id": "TKT-008"
-        },
-        "success": true,
-        "error": null
-      }
-    ],
-    "reasoning_summary": "Processed via iterative planner with 5 tool calls.",
-    "final_decision": {
-      "action": "reply_sent",
-      "details": "Please share a bit more detail so we can resolve this quickly."
-    },
-    "confidence_score": 0.86
-  },
-  {
     "ticket_id": "TKT-009",
-    "worker_id": 4,
+    "worker_id": 2,
     "classification": {
       "category": "refund_or_return",
       "urgency": "low",
@@ -1428,6 +1451,11 @@
         "thought": "Policy requires eligibility check before refund.",
         "action": "check_refund_eligibility({'order_id': 'ORD-1009'})",
         "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "Collect policy snippets for explainable response.",
+        "action": "search_knowledge_base({'query': 'Refund already done?'})",
+        "observation": "Tool execution failed"
       },
       {
         "thought": "Collect policy snippets for explainable response.",
@@ -1520,6 +1548,18 @@
           "query": "Refund already done?"
         },
         "output": {
+          "error": "search_knowledge_base: missing keys ['results']",
+          "tool": "search_knowledge_base"
+        },
+        "success": false,
+        "error": "search_knowledge_base: missing keys ['results']"
+      },
+      {
+        "name": "search_knowledge_base",
+        "inputs": {
+          "query": "Refund already done?"
+        },
+        "output": {
           "results": [
             {
               "id": "KB-MASTER",
@@ -1545,16 +1585,149 @@
         "error": null
       }
     ],
-    "reasoning_summary": "Processed via iterative planner with 6 tool calls.",
+    "reasoning_summary": "Processed via iterative planner with 7 tool calls.",
     "final_decision": {
       "action": "reply_sent",
       "details": "Your refund is already processed. Banks typically post funds in 5-7 business days."
     },
-    "confidence_score": 0.97
+    "confidence_score": 0.92
+  },
+  {
+    "ticket_id": "TKT-012",
+    "worker_id": 2,
+    "classification": {
+      "category": "cancellation",
+      "urgency": "low",
+      "resolvability": "needs_clarification"
+    },
+    "steps_taken": [
+      {
+        "thought": "Verify customer profile and tier in system.",
+        "action": "get_customer({'email': 'carol.nguyen@email.com'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "Fetch order details to validate claim.",
+        "action": "get_order({'order_id': 'ORD-1012'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "Fetch product-specific policy constraints.",
+        "action": "get_product({'product_id': 'P002'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "Collect policy snippets for explainable response.",
+        "action": "search_knowledge_base({'query': 'Cancel my new order'})",
+        "observation": "Tool execution succeeded"
+      }
+    ],
+    "tool_calls": [
+      {
+        "name": "get_customer",
+        "inputs": {
+          "email": "carol.nguyen@email.com"
+        },
+        "output": {
+          "customer_id": "C003",
+          "name": "Carol Nguyen",
+          "email": "carol.nguyen@email.com",
+          "phone": "+1-312-555-0143",
+          "tier": "premium",
+          "member_since": "2021-06-18",
+          "total_orders": 22,
+          "total_spent": 3120.75,
+          "address": {
+            "street": "45 Oak Lane",
+            "city": "Chicago",
+            "state": "IL",
+            "zip": "60601"
+          },
+          "notes": "Premium member. Prefers email communication."
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "get_order",
+        "inputs": {
+          "order_id": "ORD-1012"
+        },
+        "output": {
+          "order_id": "ORD-1012",
+          "customer_id": "C003",
+          "product_id": "P002",
+          "quantity": 1,
+          "amount": 89.99,
+          "status": "processing",
+          "order_date": "2024-03-14",
+          "delivery_date": null,
+          "return_deadline": null,
+          "refund_status": null,
+          "notes": "Order placed but not yet shipped. Customer can cancel free of charge."
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "get_product",
+        "inputs": {
+          "product_id": "P002"
+        },
+        "output": {
+          "product_id": "P002",
+          "name": "SwiftRun Pro Running Shoes",
+          "category": "footwear",
+          "price": 89.99,
+          "warranty_months": 0,
+          "return_window_days": 30,
+          "returnable": true,
+          "notes": "Must be unworn and in original packaging. No return if used outdoors."
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "search_knowledge_base",
+        "inputs": {
+          "query": "Cancel my new order"
+        },
+        "output": {
+          "results": [
+            {
+              "id": "KB-MASTER",
+              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
+            }
+          ]
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "send_reply",
+        "inputs": {
+          "ticket_id": "TKT-012",
+          "message": "Order ORD-1012 is in processing and can be cancelled. Cancellation has been queued."
+        },
+        "output": {
+          "success": true,
+          "reply_id": "RPL-TKT-012",
+          "ticket_id": "TKT-012"
+        },
+        "success": true,
+        "error": null
+      }
+    ],
+    "reasoning_summary": "Processed via iterative planner with 5 tool calls.",
+    "final_decision": {
+      "action": "reply_sent",
+      "details": "Order ORD-1012 is in processing and can be cancelled. Cancellation has been queued."
+    },
+    "confidence_score": 0.86
   },
   {
     "ticket_id": "TKT-011",
-    "worker_id": 3,
+    "worker_id": 1,
     "classification": {
       "category": "general",
       "urgency": "medium",
@@ -1703,7 +1876,7 @@
   },
   {
     "ticket_id": "TKT-013",
-    "worker_id": 1,
+    "worker_id": 2,
     "classification": {
       "category": "refund_or_return",
       "urgency": "medium",
@@ -1836,7 +2009,7 @@
   },
   {
     "ticket_id": "TKT-014",
-    "worker_id": 2,
+    "worker_id": 1,
     "classification": {
       "category": "refund_or_return",
       "urgency": "low",
@@ -1963,170 +2136,232 @@
     "confidence_score": 0.86
   },
   {
-    "ticket_id": "TKT-012",
-    "worker_id": 6,
+    "ticket_id": "TKT-016",
+    "worker_id": 1,
     "classification": {
-      "category": "cancellation",
-      "urgency": "low",
+      "category": "refund_or_return",
+      "urgency": "medium",
       "resolvability": "needs_clarification"
     },
     "steps_taken": [
       {
         "thought": "Verify customer profile and tier in system.",
-        "action": "get_customer({'email': 'carol.nguyen@email.com'})",
-        "observation": "Tool execution succeeded"
+        "action": "get_customer({'email': 'unknown.user@email.com'})",
+        "observation": "Tool execution failed"
       },
       {
-        "thought": "Fetch order details to validate claim.",
-        "action": "get_order({'order_id': 'ORD-1012'})",
-        "observation": "Tool execution succeeded"
+        "thought": "Verify customer profile and tier in system.",
+        "action": "get_customer({'email': 'unknown.user@email.com'})",
+        "observation": "Tool execution failed"
       },
       {
-        "thought": "Fetch product-specific policy constraints.",
-        "action": "get_product({'product_id': 'P002'})",
-        "observation": "Tool execution succeeded"
+        "thought": "Verify customer profile and tier in system.",
+        "action": "get_customer({'email': 'unknown.user@email.com'})",
+        "observation": "Tool execution failed"
       },
       {
-        "thought": "Collect policy snippets for explainable response.",
-        "action": "search_knowledge_base({'query': 'Cancel my new order'})",
-        "observation": "Tool execution succeeded"
+        "thought": "Verify customer profile and tier in system.",
+        "action": "get_customer({'email': 'unknown.user@email.com'})",
+        "observation": "Tool execution failed"
+      },
+      {
+        "thought": "Verify customer profile and tier in system.",
+        "action": "get_customer({'email': 'unknown.user@email.com'})",
+        "observation": "Tool execution failed"
+      },
+      {
+        "thought": "Verify customer profile and tier in system.",
+        "action": "get_customer({'email': 'unknown.user@email.com'})",
+        "observation": "Tool execution failed"
+      },
+      {
+        "thought": "Verify customer profile and tier in system.",
+        "action": "get_customer({'email': 'unknown.user@email.com'})",
+        "observation": "Tool execution failed"
+      },
+      {
+        "thought": "Verify customer profile and tier in system.",
+        "action": "get_customer({'email': 'unknown.user@email.com'})",
+        "observation": "Tool execution failed"
       }
     ],
     "tool_calls": [
       {
         "name": "get_customer",
         "inputs": {
-          "email": "carol.nguyen@email.com"
+          "email": "unknown.user@email.com"
         },
         "output": {
-          "customer_id": "C003",
-          "name": "Carol Nguyen",
-          "email": "carol.nguyen@email.com",
-          "phone": "+1-312-555-0143",
-          "tier": "premium",
-          "member_since": "2021-06-18",
-          "total_orders": 22,
-          "total_spent": 3120.75,
-          "address": {
-            "street": "45 Oak Lane",
-            "city": "Chicago",
-            "state": "IL",
-            "zip": "60601"
-          },
-          "notes": "Premium member. Prefers email communication."
+          "error": "get_customer: missing keys ['customer_id', 'tier', 'email']",
+          "tool": "get_customer"
         },
-        "success": true,
-        "error": null
+        "success": false,
+        "error": "get_customer: missing keys ['customer_id', 'tier', 'email']"
       },
       {
-        "name": "get_order",
+        "name": "get_customer",
         "inputs": {
-          "order_id": "ORD-1012"
+          "email": "unknown.user@email.com"
         },
         "output": {
-          "order_id": "ORD-1012",
-          "customer_id": "C003",
-          "product_id": "P002",
-          "quantity": 1,
-          "amount": 89.99,
-          "status": "processing",
-          "order_date": "2024-03-14",
-          "delivery_date": null,
-          "return_deadline": null,
-          "refund_status": null,
-          "notes": "Order placed but not yet shipped. Customer can cancel free of charge."
+          "error": "get_customer: missing keys ['customer_id', 'tier', 'email']",
+          "tool": "get_customer"
         },
-        "success": true,
-        "error": null
+        "success": false,
+        "error": "get_customer: missing keys ['customer_id', 'tier', 'email']"
       },
       {
-        "name": "get_product",
+        "name": "get_customer",
         "inputs": {
-          "product_id": "P002"
+          "email": "unknown.user@email.com"
         },
         "output": {
-          "product_id": "P002",
-          "name": "SwiftRun Pro Running Shoes",
-          "category": "footwear",
-          "price": 89.99,
-          "warranty_months": 0,
-          "return_window_days": 30,
-          "returnable": true,
-          "notes": "Must be unworn and in original packaging. No return if used outdoors."
+          "error": "get_customer: missing keys ['customer_id', 'tier', 'email']",
+          "tool": "get_customer"
         },
-        "success": true,
-        "error": null
+        "success": false,
+        "error": "get_customer: missing keys ['customer_id', 'tier', 'email']"
       },
       {
-        "name": "search_knowledge_base",
+        "name": "get_customer",
         "inputs": {
-          "query": "Cancel my new order"
+          "email": "unknown.user@email.com"
         },
         "output": {
-          "results": [
-            {
-              "id": "KB-MASTER",
-              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
-            }
-          ]
+          "error": "get_customer: missing keys ['customer_id', 'tier', 'email']",
+          "tool": "get_customer"
         },
-        "success": true,
-        "error": null
+        "success": false,
+        "error": "get_customer: missing keys ['customer_id', 'tier', 'email']"
+      },
+      {
+        "name": "get_customer",
+        "inputs": {
+          "email": "unknown.user@email.com"
+        },
+        "output": {
+          "error": "get_customer: missing keys ['customer_id', 'tier', 'email']",
+          "tool": "get_customer"
+        },
+        "success": false,
+        "error": "get_customer: missing keys ['customer_id', 'tier', 'email']"
+      },
+      {
+        "name": "get_customer",
+        "inputs": {
+          "email": "unknown.user@email.com"
+        },
+        "output": {
+          "error": "get_customer: missing keys ['customer_id', 'tier', 'email']",
+          "tool": "get_customer"
+        },
+        "success": false,
+        "error": "get_customer: missing keys ['customer_id', 'tier', 'email']"
+      },
+      {
+        "name": "get_customer",
+        "inputs": {
+          "email": "unknown.user@email.com"
+        },
+        "output": {
+          "error": "get_customer: missing keys ['customer_id', 'tier', 'email']",
+          "tool": "get_customer"
+        },
+        "success": false,
+        "error": "get_customer: missing keys ['customer_id', 'tier', 'email']"
+      },
+      {
+        "name": "get_customer",
+        "inputs": {
+          "email": "unknown.user@email.com"
+        },
+        "output": {
+          "error": "get_customer: missing keys ['customer_id', 'tier', 'email']",
+          "tool": "get_customer"
+        },
+        "success": false,
+        "error": "get_customer: missing keys ['customer_id', 'tier', 'email']"
       },
       {
         "name": "send_reply",
         "inputs": {
-          "ticket_id": "TKT-012",
-          "message": "Order ORD-1012 is in processing and can be cancelled. Cancellation has been queued."
+          "ticket_id": "TKT-016",
+          "message": "Please share your registered order ID and email so we can locate the purchase."
         },
         "output": {
           "success": true,
-          "reply_id": "RPL-TKT-012",
-          "ticket_id": "TKT-012"
+          "reply_id": "RPL-TKT-016",
+          "ticket_id": "TKT-016"
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "escalate",
+        "inputs": {
+          "ticket_id": "TKT-016",
+          "summary": "Issue: Refund request. Classification: {'category': 'refund_or_return', 'urgency': 'medium', 'resolvability': 'needs_clarification'}. Checks: get_customer:fail, get_customer:fail, get_customer:fail, get_customer:fail, get_customer:fail, get_customer:fail, get_customer:fail, get_customer:fail, send_reply:ok. Recommendation: Low-confidence decision; requires review.",
+          "priority": "high"
+        },
+        "output": {
+          "success": true,
+          "escalation_id": "ESC-TKT-016",
+          "priority": "high"
         },
         "success": true,
         "error": null
       }
     ],
-    "reasoning_summary": "Processed via iterative planner with 5 tool calls.",
+    "reasoning_summary": "Processed via iterative planner with 10 tool calls.",
     "final_decision": {
-      "action": "reply_sent",
-      "details": "Order ORD-1012 is in processing and can be cancelled. Cancellation has been queued."
+      "action": "escalate",
+      "details": "Confidence below threshold; escalated for safety.",
+      "priority": "high"
     },
-    "confidence_score": 0.86
+    "confidence_score": 0.23
   },
   {
-    "ticket_id": "TKT-018",
-    "worker_id": 1,
+    "ticket_id": "TKT-015",
+    "worker_id": 2,
     "classification": {
-      "category": "refund_or_return",
-      "urgency": "high",
-      "resolvability": "autonomous_response"
+      "category": "damaged_or_defective",
+      "urgency": "medium",
+      "resolvability": "needs_clarification"
     },
     "steps_taken": [
       {
         "thought": "Verify customer profile and tier in system.",
-        "action": "get_customer({'email': 'bob.mendes@email.com'})",
+        "action": "get_customer({'email': 'emma.collins@email.com'})",
+        "observation": "Tool execution failed"
+      },
+      {
+        "thought": "Verify customer profile and tier in system.",
+        "action": "get_customer({'email': 'emma.collins@email.com'})",
         "observation": "Tool execution succeeded"
       },
       {
         "thought": "Fetch order details to validate claim.",
-        "action": "get_order({'order_id': 'ORD-1002'})",
+        "action": "get_order({'order_id': 'ORD-1015'})",
         "observation": "Tool execution succeeded"
       },
       {
         "thought": "Fetch product-specific policy constraints.",
-        "action": "get_product({'product_id': 'P006'})",
+        "action": "get_product({'product_id': 'P003'})",
         "observation": "Tool execution succeeded"
       },
       {
         "thought": "Policy requires eligibility check before refund.",
-        "action": "check_refund_eligibility({'order_id': 'ORD-1002'})",
+        "action": "check_refund_eligibility({'order_id': 'ORD-1015'})",
+        "observation": "Tool execution failed"
+      },
+      {
+        "thought": "Policy requires eligibility check before refund.",
+        "action": "check_refund_eligibility({'order_id': 'ORD-1015'})",
         "observation": "Tool execution succeeded"
       },
       {
         "thought": "Collect policy snippets for explainable response.",
-        "action": "search_knowledge_base({'query': 'Urgent refund needed'})",
+        "action": "search_knowledge_base({'query': 'Damaged coffee maker'})",
         "observation": "Tool execution succeeded"
       }
     ],
@@ -2134,24 +2369,36 @@
       {
         "name": "get_customer",
         "inputs": {
-          "email": "bob.mendes@email.com"
+          "email": "emma.collins@email.com"
         },
         "output": {
-          "customer_id": "C002",
-          "name": "Bob Mendes",
-          "email": "bob.mendes@email.com",
-          "phone": "+1-212-555-0198",
-          "tier": "standard",
-          "member_since": "2023-10-05",
-          "total_orders": 3,
-          "total_spent": 210.0,
+          "error": "get_customer: missing keys ['customer_id', 'tier', 'email']",
+          "tool": "get_customer"
+        },
+        "success": false,
+        "error": "get_customer: missing keys ['customer_id', 'tier', 'email']"
+      },
+      {
+        "name": "get_customer",
+        "inputs": {
+          "email": "emma.collins@email.com"
+        },
+        "output": {
+          "customer_id": "C005",
+          "name": "Emma Collins",
+          "email": "emma.collins@email.com",
+          "phone": "+1-512-555-0165",
+          "tier": "vip",
+          "member_since": "2018-11-02",
+          "total_orders": 91,
+          "total_spent": 14220.0,
           "address": {
-            "street": "88 Birch Street",
-            "city": "New York",
-            "state": "NY",
-            "zip": "10001"
+            "street": "7 Sunset Blvd",
+            "city": "Austin",
+            "state": "TX",
+            "zip": "73301"
           },
-          "notes": "New customer. No prior refund history."
+          "notes": "Highest lifetime value customer. Has a standing exception for extended return windows pre-approved by management."
         },
         "success": true,
         "error": null
@@ -2159,20 +2406,20 @@
       {
         "name": "get_order",
         "inputs": {
-          "order_id": "ORD-1002"
+          "order_id": "ORD-1015"
         },
         "output": {
-          "order_id": "ORD-1002",
-          "customer_id": "C002",
-          "product_id": "P006",
+          "order_id": "ORD-1015",
+          "customer_id": "C005",
+          "product_id": "P003",
           "quantity": 1,
-          "amount": 249.99,
+          "amount": 199.99,
           "status": "delivered",
-          "order_date": "2024-03-01",
-          "delivery_date": "2024-03-04",
-          "return_deadline": "2024-03-19",
+          "order_date": "2024-02-18",
+          "delivery_date": "2024-02-22",
+          "return_deadline": "2024-03-23",
           "refund_status": null,
-          "notes": "High-value item. 15-day return window applies."
+          "notes": "Item arrived with cracked water tank. Customer sent photo evidence."
         },
         "success": true,
         "error": null
@@ -2180,17 +2427,17 @@
       {
         "name": "get_product",
         "inputs": {
-          "product_id": "P006"
+          "product_id": "P003"
         },
         "output": {
-          "product_id": "P006",
-          "name": "PulseX Smart Watch",
-          "category": "electronics",
-          "price": 249.99,
-          "warranty_months": 12,
-          "return_window_days": 15,
+          "product_id": "P003",
+          "name": "BrewMaster 3000 Coffee Maker",
+          "category": "home_appliances",
+          "price": 199.99,
+          "warranty_months": 24,
+          "return_window_days": 30,
           "returnable": true,
-          "notes": "Only 15-day return window due to high-value electronics policy. Warranty covers hardware defects."
+          "notes": "Warranty covers manufacturing defects only. Does not cover user damage."
         },
         "success": true,
         "error": null
@@ -2198,13 +2445,25 @@
       {
         "name": "check_refund_eligibility",
         "inputs": {
-          "order_id": "ORD-1002"
+          "order_id": "ORD-1015"
         },
         "output": {
-          "order_id": "ORD-1002",
+          "error": "check_refund_eligibility: missing keys ['order_id', 'eligible', 'reason']",
+          "tool": "check_refund_eligibility"
+        },
+        "success": false,
+        "error": "check_refund_eligibility: missing keys ['order_id', 'eligible', 'reason']"
+      },
+      {
+        "name": "check_refund_eligibility",
+        "inputs": {
+          "order_id": "ORD-1015"
+        },
+        "output": {
+          "order_id": "ORD-1015",
           "eligible": true,
           "reason": "within_policy",
-          "max_refund_amount": 249.99
+          "max_refund_amount": 199.99
         },
         "success": true,
         "error": null
@@ -2212,7 +2471,7 @@
       {
         "name": "search_knowledge_base",
         "inputs": {
-          "query": "Urgent refund needed"
+          "query": "Damaged coffee maker"
         },
         "output": {
           "results": [
@@ -2228,13 +2487,13 @@
       {
         "name": "escalate",
         "inputs": {
-          "ticket_id": "TKT-018",
-          "summary": "Issue: Urgent refund needed. Classification: {'category': 'refund_or_return', 'urgency': 'high', 'resolvability': 'autonomous_response'}. Checks: get_customer:ok, get_order:ok, get_product:ok, check_refund_eligibility:ok, search_knowledge_base:ok. Recommendation: Refund amount exceeds $200 threshold.",
+          "ticket_id": "TKT-015",
+          "summary": "Issue: Damaged coffee maker. Classification: {'category': 'damaged_or_defective', 'urgency': 'medium', 'resolvability': 'needs_clarification'}. Checks: get_customer:fail, get_customer:ok, get_order:ok, get_product:ok, check_refund_eligibility:fail, check_refund_eligibility:ok, search_knowledge_base:ok. Recommendation: Replacement/warranty scenario requires specialist handling.",
           "priority": "high"
         },
         "output": {
           "success": true,
-          "escalation_id": "ESC-TKT-018",
+          "escalation_id": "ESC-TKT-015",
           "priority": "high"
         },
         "success": true,
@@ -2243,29 +2502,29 @@
       {
         "name": "send_reply",
         "inputs": {
-          "ticket_id": "TKT-018",
+          "ticket_id": "TKT-015",
           "message": "Your case needs specialist review. We've escalated it and will follow up shortly."
         },
         "output": {
           "success": true,
-          "reply_id": "RPL-TKT-018",
-          "ticket_id": "TKT-018"
+          "reply_id": "RPL-TKT-015",
+          "ticket_id": "TKT-015"
         },
         "success": true,
         "error": null
       }
     ],
-    "reasoning_summary": "Processed via iterative planner with 7 tool calls.",
+    "reasoning_summary": "Processed via iterative planner with 9 tool calls.",
     "final_decision": {
       "action": "escalate",
-      "details": "Refund amount exceeds $200 threshold.",
+      "details": "Replacement/warranty scenario requires specialist handling.",
       "priority": "high"
     },
-    "confidence_score": 1.0
+    "confidence_score": 0.92
   },
   {
     "ticket_id": "TKT-017",
-    "worker_id": 3,
+    "worker_id": 1,
     "classification": {
       "category": "refund_or_return",
       "urgency": "high",
@@ -2462,394 +2721,8 @@
     "confidence_score": 0.42
   },
   {
-    "ticket_id": "TKT-016",
-    "worker_id": 4,
-    "classification": {
-      "category": "refund_or_return",
-      "urgency": "medium",
-      "resolvability": "needs_clarification"
-    },
-    "steps_taken": [
-      {
-        "thought": "Verify customer profile and tier in system.",
-        "action": "get_customer({'email': 'unknown.user@email.com'})",
-        "observation": "Tool execution failed"
-      },
-      {
-        "thought": "Verify customer profile and tier in system.",
-        "action": "get_customer({'email': 'unknown.user@email.com'})",
-        "observation": "Tool execution failed"
-      },
-      {
-        "thought": "Verify customer profile and tier in system.",
-        "action": "get_customer({'email': 'unknown.user@email.com'})",
-        "observation": "Tool execution failed"
-      },
-      {
-        "thought": "Verify customer profile and tier in system.",
-        "action": "get_customer({'email': 'unknown.user@email.com'})",
-        "observation": "Tool execution failed"
-      },
-      {
-        "thought": "Verify customer profile and tier in system.",
-        "action": "get_customer({'email': 'unknown.user@email.com'})",
-        "observation": "Tool execution failed"
-      },
-      {
-        "thought": "Verify customer profile and tier in system.",
-        "action": "get_customer({'email': 'unknown.user@email.com'})",
-        "observation": "Tool execution failed"
-      },
-      {
-        "thought": "Verify customer profile and tier in system.",
-        "action": "get_customer({'email': 'unknown.user@email.com'})",
-        "observation": "Tool execution failed"
-      },
-      {
-        "thought": "Verify customer profile and tier in system.",
-        "action": "get_customer({'email': 'unknown.user@email.com'})",
-        "observation": "Tool execution failed"
-      }
-    ],
-    "tool_calls": [
-      {
-        "name": "get_customer",
-        "inputs": {
-          "email": "unknown.user@email.com"
-        },
-        "output": {
-          "error": "get_customer: missing keys ['customer_id', 'tier', 'email']",
-          "tool": "get_customer"
-        },
-        "success": false,
-        "error": "get_customer: missing keys ['customer_id', 'tier', 'email']"
-      },
-      {
-        "name": "get_customer",
-        "inputs": {
-          "email": "unknown.user@email.com"
-        },
-        "output": {
-          "error": "get_customer: missing keys ['customer_id', 'tier', 'email']",
-          "tool": "get_customer"
-        },
-        "success": false,
-        "error": "get_customer: missing keys ['customer_id', 'tier', 'email']"
-      },
-      {
-        "name": "get_customer",
-        "inputs": {
-          "email": "unknown.user@email.com"
-        },
-        "output": {
-          "error": "get_customer: missing keys ['customer_id', 'tier', 'email']",
-          "tool": "get_customer"
-        },
-        "success": false,
-        "error": "get_customer: missing keys ['customer_id', 'tier', 'email']"
-      },
-      {
-        "name": "get_customer",
-        "inputs": {
-          "email": "unknown.user@email.com"
-        },
-        "output": {
-          "error": "get_customer: missing keys ['customer_id', 'tier', 'email']",
-          "tool": "get_customer"
-        },
-        "success": false,
-        "error": "get_customer: missing keys ['customer_id', 'tier', 'email']"
-      },
-      {
-        "name": "get_customer",
-        "inputs": {
-          "email": "unknown.user@email.com"
-        },
-        "output": {
-          "error": "get_customer: missing keys ['customer_id', 'tier', 'email']",
-          "tool": "get_customer"
-        },
-        "success": false,
-        "error": "get_customer: missing keys ['customer_id', 'tier', 'email']"
-      },
-      {
-        "name": "get_customer",
-        "inputs": {
-          "email": "unknown.user@email.com"
-        },
-        "output": {
-          "error": "get_customer: missing keys ['customer_id', 'tier', 'email']",
-          "tool": "get_customer"
-        },
-        "success": false,
-        "error": "get_customer: missing keys ['customer_id', 'tier', 'email']"
-      },
-      {
-        "name": "get_customer",
-        "inputs": {
-          "email": "unknown.user@email.com"
-        },
-        "output": {
-          "error": "get_customer: missing keys ['customer_id', 'tier', 'email']",
-          "tool": "get_customer"
-        },
-        "success": false,
-        "error": "get_customer: missing keys ['customer_id', 'tier', 'email']"
-      },
-      {
-        "name": "get_customer",
-        "inputs": {
-          "email": "unknown.user@email.com"
-        },
-        "output": {
-          "error": "get_customer: missing keys ['customer_id', 'tier', 'email']",
-          "tool": "get_customer"
-        },
-        "success": false,
-        "error": "get_customer: missing keys ['customer_id', 'tier', 'email']"
-      },
-      {
-        "name": "send_reply",
-        "inputs": {
-          "ticket_id": "TKT-016",
-          "message": "Please share your registered order ID and email so we can locate the purchase."
-        },
-        "output": {
-          "success": true,
-          "reply_id": "RPL-TKT-016",
-          "ticket_id": "TKT-016"
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "escalate",
-        "inputs": {
-          "ticket_id": "TKT-016",
-          "summary": "Issue: Refund request. Classification: {'category': 'refund_or_return', 'urgency': 'medium', 'resolvability': 'needs_clarification'}. Checks: get_customer:fail, get_customer:fail, get_customer:fail, get_customer:fail, get_customer:fail, get_customer:fail, get_customer:fail, get_customer:fail, send_reply:ok. Recommendation: Low-confidence decision; requires review.",
-          "priority": "high"
-        },
-        "output": {
-          "success": true,
-          "escalation_id": "ESC-TKT-016",
-          "priority": "high"
-        },
-        "success": true,
-        "error": null
-      }
-    ],
-    "reasoning_summary": "Processed via iterative planner with 10 tool calls.",
-    "final_decision": {
-      "action": "escalate",
-      "details": "Confidence below threshold; escalated for safety.",
-      "priority": "high"
-    },
-    "confidence_score": 0.23
-  },
-  {
-    "ticket_id": "TKT-015",
-    "worker_id": 5,
-    "classification": {
-      "category": "damaged_or_defective",
-      "urgency": "medium",
-      "resolvability": "needs_clarification"
-    },
-    "steps_taken": [
-      {
-        "thought": "Verify customer profile and tier in system.",
-        "action": "get_customer({'email': 'emma.collins@email.com'})",
-        "observation": "Tool execution succeeded"
-      },
-      {
-        "thought": "Fetch order details to validate claim.",
-        "action": "get_order({'order_id': 'ORD-1015'})",
-        "observation": "Tool execution succeeded"
-      },
-      {
-        "thought": "Fetch product-specific policy constraints.",
-        "action": "get_product({'product_id': 'P003'})",
-        "observation": "Tool execution succeeded"
-      },
-      {
-        "thought": "Policy requires eligibility check before refund.",
-        "action": "check_refund_eligibility({'order_id': 'ORD-1015'})",
-        "observation": "Tool execution failed"
-      },
-      {
-        "thought": "Policy requires eligibility check before refund.",
-        "action": "check_refund_eligibility({'order_id': 'ORD-1015'})",
-        "observation": "Tool execution succeeded"
-      },
-      {
-        "thought": "Collect policy snippets for explainable response.",
-        "action": "search_knowledge_base({'query': 'Damaged coffee maker'})",
-        "observation": "Tool execution failed"
-      },
-      {
-        "thought": "Collect policy snippets for explainable response.",
-        "action": "search_knowledge_base({'query': 'Damaged coffee maker'})",
-        "observation": "Tool execution succeeded"
-      }
-    ],
-    "tool_calls": [
-      {
-        "name": "get_customer",
-        "inputs": {
-          "email": "emma.collins@email.com"
-        },
-        "output": {
-          "customer_id": "C005",
-          "name": "Emma Collins",
-          "email": "emma.collins@email.com",
-          "phone": "+1-512-555-0165",
-          "tier": "vip",
-          "member_since": "2018-11-02",
-          "total_orders": 91,
-          "total_spent": 14220.0,
-          "address": {
-            "street": "7 Sunset Blvd",
-            "city": "Austin",
-            "state": "TX",
-            "zip": "73301"
-          },
-          "notes": "Highest lifetime value customer. Has a standing exception for extended return windows pre-approved by management."
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "get_order",
-        "inputs": {
-          "order_id": "ORD-1015"
-        },
-        "output": {
-          "order_id": "ORD-1015",
-          "customer_id": "C005",
-          "product_id": "P003",
-          "quantity": 1,
-          "amount": 199.99,
-          "status": "delivered",
-          "order_date": "2024-02-18",
-          "delivery_date": "2024-02-22",
-          "return_deadline": "2024-03-23",
-          "refund_status": null,
-          "notes": "Item arrived with cracked water tank. Customer sent photo evidence."
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "get_product",
-        "inputs": {
-          "product_id": "P003"
-        },
-        "output": {
-          "product_id": "P003",
-          "name": "BrewMaster 3000 Coffee Maker",
-          "category": "home_appliances",
-          "price": 199.99,
-          "warranty_months": 24,
-          "return_window_days": 30,
-          "returnable": true,
-          "notes": "Warranty covers manufacturing defects only. Does not cover user damage."
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "check_refund_eligibility",
-        "inputs": {
-          "order_id": "ORD-1015"
-        },
-        "output": {
-          "error": "check_refund_eligibility: missing keys ['order_id', 'eligible', 'reason']",
-          "tool": "check_refund_eligibility"
-        },
-        "success": false,
-        "error": "check_refund_eligibility: missing keys ['order_id', 'eligible', 'reason']"
-      },
-      {
-        "name": "check_refund_eligibility",
-        "inputs": {
-          "order_id": "ORD-1015"
-        },
-        "output": {
-          "order_id": "ORD-1015",
-          "eligible": true,
-          "reason": "within_policy",
-          "max_refund_amount": 199.99
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "search_knowledge_base",
-        "inputs": {
-          "query": "Damaged coffee maker"
-        },
-        "output": {
-          "error": "search_knowledge_base: missing keys ['results']",
-          "tool": "search_knowledge_base"
-        },
-        "success": false,
-        "error": "search_knowledge_base: missing keys ['results']"
-      },
-      {
-        "name": "search_knowledge_base",
-        "inputs": {
-          "query": "Damaged coffee maker"
-        },
-        "output": {
-          "results": [
-            {
-              "id": "KB-MASTER",
-              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
-            }
-          ]
-        },
-        "success": true,
-        "error": null
-      },
-      {
-        "name": "escalate",
-        "inputs": {
-          "ticket_id": "TKT-015",
-          "summary": "Issue: Damaged coffee maker. Classification: {'category': 'damaged_or_defective', 'urgency': 'medium', 'resolvability': 'needs_clarification'}. Checks: get_customer:ok, get_order:ok, get_product:ok, check_refund_eligibility:fail, check_refund_eligibility:ok, search_knowledge_base:fail, search_knowledge_base:ok. Recommendation: Replacement/warranty scenario requires specialist handling.",
-          "priority": "high"
-        },
-        "output": {
-          "error": "escalate: missing keys ['success', 'priority']",
-          "tool": "escalate"
-        },
-        "success": false,
-        "error": "escalate: missing keys ['success', 'priority']"
-      },
-      {
-        "name": "send_reply",
-        "inputs": {
-          "ticket_id": "TKT-015",
-          "message": "Your case needs specialist review. We've escalated it and will follow up shortly."
-        },
-        "output": {
-          "success": true,
-          "reply_id": "RPL-TKT-015",
-          "ticket_id": "TKT-015"
-        },
-        "success": true,
-        "error": null
-      }
-    ],
-    "reasoning_summary": "Processed via iterative planner with 9 tool calls.",
-    "final_decision": {
-      "action": "escalate",
-      "details": "Replacement/warranty scenario requires specialist handling.",
-      "priority": "high"
-    },
-    "confidence_score": 0.85
-  },
-  {
     "ticket_id": "TKT-019",
-    "worker_id": 2,
+    "worker_id": 1,
     "classification": {
       "category": "refund_or_return",
       "urgency": "low",
@@ -2889,7 +2762,7 @@
       {
         "thought": "No order ID found; pull policy guidance.",
         "action": "search_knowledge_base({'query': 'General question about returns Hello, what is your return policy for electronics? And do you offer exchanges?'})",
-        "observation": "Tool execution succeeded"
+        "observation": "Tool execution failed"
       },
       {
         "thought": "No order ID found; pull policy guidance.",
@@ -3009,15 +2882,11 @@
           "query": "General question about returns Hello, what is your return policy for electronics? And do you offer exchanges?"
         },
         "output": {
-          "results": [
-            {
-              "id": "KB-MASTER",
-              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
-            }
-          ]
+          "error": "search_knowledge_base: missing keys ['results']",
+          "tool": "search_knowledge_base"
         },
-        "success": true,
-        "error": null
+        "success": false,
+        "error": "search_knowledge_base: missing keys ['results']"
       },
       {
         "name": "search_knowledge_base",
@@ -3055,11 +2924,179 @@
       "action": "reply_sent",
       "details": "Our return policy is 30 days by default, with category exceptions and exchange support."
     },
-    "confidence_score": 0.78
+    "confidence_score": 0.73
+  },
+  {
+    "ticket_id": "TKT-018",
+    "worker_id": 2,
+    "classification": {
+      "category": "refund_or_return",
+      "urgency": "high",
+      "resolvability": "autonomous_response"
+    },
+    "steps_taken": [
+      {
+        "thought": "Verify customer profile and tier in system.",
+        "action": "get_customer({'email': 'bob.mendes@email.com'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "Fetch order details to validate claim.",
+        "action": "get_order({'order_id': 'ORD-1002'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "Fetch product-specific policy constraints.",
+        "action": "get_product({'product_id': 'P006'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "Policy requires eligibility check before refund.",
+        "action": "check_refund_eligibility({'order_id': 'ORD-1002'})",
+        "observation": "Tool execution succeeded"
+      },
+      {
+        "thought": "Collect policy snippets for explainable response.",
+        "action": "search_knowledge_base({'query': 'Urgent refund needed'})",
+        "observation": "Tool execution succeeded"
+      }
+    ],
+    "tool_calls": [
+      {
+        "name": "get_customer",
+        "inputs": {
+          "email": "bob.mendes@email.com"
+        },
+        "output": {
+          "customer_id": "C002",
+          "name": "Bob Mendes",
+          "email": "bob.mendes@email.com",
+          "phone": "+1-212-555-0198",
+          "tier": "standard",
+          "member_since": "2023-10-05",
+          "total_orders": 3,
+          "total_spent": 210.0,
+          "address": {
+            "street": "88 Birch Street",
+            "city": "New York",
+            "state": "NY",
+            "zip": "10001"
+          },
+          "notes": "New customer. No prior refund history."
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "get_order",
+        "inputs": {
+          "order_id": "ORD-1002"
+        },
+        "output": {
+          "order_id": "ORD-1002",
+          "customer_id": "C002",
+          "product_id": "P006",
+          "quantity": 1,
+          "amount": 249.99,
+          "status": "delivered",
+          "order_date": "2024-03-01",
+          "delivery_date": "2024-03-04",
+          "return_deadline": "2024-03-19",
+          "refund_status": null,
+          "notes": "High-value item. 15-day return window applies."
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "get_product",
+        "inputs": {
+          "product_id": "P006"
+        },
+        "output": {
+          "product_id": "P006",
+          "name": "PulseX Smart Watch",
+          "category": "electronics",
+          "price": 249.99,
+          "warranty_months": 12,
+          "return_window_days": 15,
+          "returnable": true,
+          "notes": "Only 15-day return window due to high-value electronics policy. Warranty covers hardware defects."
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "check_refund_eligibility",
+        "inputs": {
+          "order_id": "ORD-1002"
+        },
+        "output": {
+          "order_id": "ORD-1002",
+          "eligible": true,
+          "reason": "within_policy",
+          "max_refund_amount": 249.99
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "search_knowledge_base",
+        "inputs": {
+          "query": "Urgent refund needed"
+        },
+        "output": {
+          "results": [
+            {
+              "id": "KB-MASTER",
+              "content": "# ShopWave Support Knowledge Base\n\n## 1. Return Policy\n\n### Standard Return Window\n- Most products have a 30-day return window from the date of delivery.\n- Items must be unused, in original condition, and in original packaging.\n- Proof of purchase (order ID) is required for all returns.\n\n### Category-Specific Return Windows\n- Electronics accessories (laptop stands, cables, mounts): 60-day return window.\n- High-value electronics (smart watches, tablets, laptops): 15-day return window only.\n- Footwear: 30-day return window. Item must be unworn with no outdoor use.\n- Sports and fitness equipment: 30-day return window. Non-returnable if used (hygiene policy).\n\n### Non-Returnable Items\n- Items registered online after purchase (e.g. Bluetooth devices, smart devices with activation).\n- Perishable goods.\n- Downloadable software or digital content.\n- Items marked as \"Final Sale\" at time of purchase.\n\n### Damaged or Defective on Arrival\n- If an item arrives damaged or defective, the customer is eligible for a full refund or replacement regardless of return window.\n- Photo evidence is required to process the claim.\n- The customer is not required to return the damaged item in most cases.\n\n### Wrong Item Delivered\n- If the wrong item is delivered, ShopWave arranges return pickup and ships the correct item at no cost.\n- If the correct item is out of stock, a full refund is issued.\n- This does not count against the standard return window.\n\n## 2. Refund Policy\n\n### Refund Eligibility\n- Refunds are only issued after eligibility is confirmed via the `check_refund_eligibility` tool.\n- Refunds are processed to the original payment method.\n- Standard processing time: 5-7 business days after approval.\n- Refunds cannot be reversed once issued.\n\n### Refund Exceptions by Customer Tier\n- Standard: Standard return and refund policy applies. No exceptions.\n- Premium: Agents may use judgment on borderline cases (1-3 days outside return window), requires supervisor note.\n- VIP: Extended leniency. Management pre-approvals may be on file.\n\n## 3. Warranty Policy\n\n### Coverage\n- Warranty covers manufacturing defects only.\n- Excludes physical damage caused by user, water damage, unauthorized modifications.\n\n### Warranty Claim Process\n- Customer must provide order ID and defect description.\n- Verify warranty period from delivery date and product warranty months.\n- Warranty claims are escalated to warranty team.\n\n## 4. Order Cancellation Policy\n\n- Processing orders can be cancelled free of charge before shipment.\n- Shipped orders cannot be cancelled and must be returned after delivery.\n- Delivered orders cannot be cancelled.\n\n## 5. Exchange Policy\n\n- Exchanges are available for wrong size, wrong colour, or wrong item delivered.\n- If desired item is unavailable, offer full refund.\n\n## 6. Escalation Guidelines\n\nEscalate when:\n- Warranty claim\n- Replacement request\n- Conflicting data between customer claim and system\n- Refund amount exceeds $200\n- Fraud or social engineering indicators\n- Supervisor approval needed\n- Confidence score below 0.6\n"
+            }
+          ]
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "escalate",
+        "inputs": {
+          "ticket_id": "TKT-018",
+          "summary": "Issue: Urgent refund needed. Classification: {'category': 'refund_or_return', 'urgency': 'high', 'resolvability': 'autonomous_response'}. Checks: get_customer:ok, get_order:ok, get_product:ok, check_refund_eligibility:ok, search_knowledge_base:ok. Recommendation: Refund amount exceeds $200 threshold.",
+          "priority": "high"
+        },
+        "output": {
+          "success": true,
+          "escalation_id": "ESC-TKT-018",
+          "priority": "high"
+        },
+        "success": true,
+        "error": null
+      },
+      {
+        "name": "send_reply",
+        "inputs": {
+          "ticket_id": "TKT-018",
+          "message": "Your case needs specialist review. We've escalated it and will follow up shortly."
+        },
+        "output": {
+          "success": true,
+          "reply_id": "RPL-TKT-018",
+          "ticket_id": "TKT-018"
+        },
+        "success": true,
+        "error": null
+      }
+    ],
+    "reasoning_summary": "Processed via iterative planner with 7 tool calls.",
+    "final_decision": {
+      "action": "escalate",
+      "details": "Refund amount exceeds $200 threshold.",
+      "priority": "high"
+    },
+    "confidence_score": 1.0
   },
   {
     "ticket_id": "TKT-020",
-    "worker_id": 6,
+    "worker_id": 1,
     "classification": {
       "category": "damaged_or_defective",
       "urgency": "medium",

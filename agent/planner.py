@@ -1,7 +1,7 @@
 import re
 from typing import Any, Dict, Optional
 
-from agent.memory import TicketState
+from main.agent.memory import TicketState
 
 
 class Planner:

@@ -5,8 +5,8 @@ from typing import Optional
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, JSONResponse
 
-from main import build_arg_parser, run as run_pipeline
-from utils.progress import ProgressTracker
+from main.main import build_arg_parser, run as run_pipeline
+from main.utils.progress import ProgressTracker
 
 app = FastAPI(title="Support agent progress")
 progress = ProgressTracker()

@@ -4,15 +4,15 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from agent.agent_loop import SupportResolutionAgent
-from agent.confidence import ConfidenceEvaluator
-from agent.executor import ToolExecutor
-from agent.planner import Planner
-from tools.mocks import MockDataStore
-from tools.read_tools import ReadTools
-from tools.write_tools import WriteTools
-from utils.logger import AuditLogger
-from utils.progress import ProgressTracker
+from main.agent.agent_loop import SupportResolutionAgent
+from main.agent.confidence import ConfidenceEvaluator
+from main.agent.executor import ToolExecutor
+from main.agent.planner import Planner
+from main.tools.mocks import MockDataStore
+from main.tools.read_tools import ReadTools
+from main.tools.write_tools import WriteTools
+from main.utils.logger import AuditLogger
+from main.utils.progress import ProgressTracker
 
 # Application root (the `main/` package directory), so CLI works from repo root with sibling `.venv`.
 _APP_ROOT = Path(__file__).resolve().parent
@@ -74,7 +74,7 @@ async def run(args: argparse.Namespace, progress: Optional[ProgressTracker] = No
     write_tools = WriteTools(store)
     executor = ToolExecutor(read_tools, write_tools)
     agent = SupportResolutionAgent(Planner(), executor, ConfidenceEvaluator())
-    logger = AuditLogger(args.audit_log)
+    logger = AuditLogger(args.audit_log, ticket_log_dir=args.ticket_log_dir)
 
     tickets = load_tickets(str(base / "tickets.json"))
     if progress:
@@ -133,6 +133,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--data-dir", default=str(_APP_ROOT / "data"))
     parser.add_argument("--audit-log", default=str(_APP_ROOT / "outputs" / "audit_log.json"))
     parser.add_argument("--dead-letter", default=str(_APP_ROOT / "outputs" / "dead_letter.json"))
+    parser.add_argument("--ticket-log-dir", default=str(_APP_ROOT / "outputs" / "ticket_log"))
     parser.add_argument("--concurrency", type=int, default=6)
     return parser
 

@@ -1,16 +1,20 @@
 from typing import Any, Dict, Tuple
 
-from agent.confidence import ConfidenceEvaluator
-from agent.executor import ToolExecutor
-from agent.memory import TicketState
-from agent.planner import Planner
+from main.agent.confidence import ConfidenceEvaluator
+from main.agent.executor import ToolExecutor
+from main.agent.memory import TicketState
+from main.agent.planner import Planner
+from main.utils.env import load_project_env
+from main.utils.gemini_reasoner import GeminiReasoner
 
 
 class SupportResolutionAgent:
     def __init__(self, planner: Planner, executor: ToolExecutor, confidence: ConfidenceEvaluator) -> None:
+        load_project_env()
         self.planner = planner
         self.executor = executor
         self.confidence = confidence
+        self.reasoner = GeminiReasoner()
 
     async def process_ticket(self, ticket: Dict[str, Any]) -> TicketState:
         state = TicketState(ticket=ticket)
@@ -23,6 +27,7 @@ class SupportResolutionAgent:
             thought = instruction["thought"]
             tool = instruction["tool"]
             args = instruction["args"]
+            thought = await self.reasoner.think_for_step(state, tool, args, default=thought)
             result = await self.executor.run_tool(state, tool, args)
 
             observation = "Tool execution failed"
@@ -68,6 +73,17 @@ class SupportResolutionAgent:
     async def _finalize(self, state: TicketState) -> None:
         action, details, priority = self._select_decision(state)
         ticket_id = state.ticket["ticket_id"]
+        if action == "refund":
+            approve, reason = await self.reasoner.double_check_refund(state)
+            state.add_step(
+                thought="Refund double-check (Gemini).",
+                action="refund_safety_check",
+                observation=("Approved" if approve else f"Rejected: {reason}"),
+            )
+            if not approve:
+                action = "escalate"
+                details += f" Refund double-check rejected: {reason}"
+
         if action == "refund":
             order = state.observations.get("order", {})
             amount = float(order.get("amount", 0.0))

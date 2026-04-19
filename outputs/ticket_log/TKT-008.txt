@@ -1,0 +1,17 @@
+Ticket: TKT-008
+
+1. thought: Verify customer profile and tier in system.
+   action: get_customer({'email': 'henry.marsh@email.com'})
+   observation: Tool execution succeeded
+
+2. thought: Fetch order details to validate claim.
+   action: get_order({'order_id': 'ORD-1008'})
+   observation: Tool execution succeeded
+
+3. thought: Fetch product-specific policy constraints.
+   action: get_product({'product_id': 'P007'})
+   observation: Tool execution succeeded
+
+4. thought: Collect policy snippets for explainable response.
+   action: search_knowledge_base({'query': 'Lamp came broken'})
+   observation: Tool execution succeeded

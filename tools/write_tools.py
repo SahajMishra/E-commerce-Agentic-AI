@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from tools.mocks import MockDataStore, maybe_malformed, maybe_timeout, simulate_latency
+from main.tools.mocks import MockDataStore, maybe_malformed, maybe_timeout, simulate_latency
 
 
 class WriteTools:

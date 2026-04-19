@@ -1,0 +1,21 @@
+Ticket: TKT-004
+
+1. thought: Verify customer profile and tier in system.
+   action: get_customer({'email': 'david.park@email.com'})
+   observation: Tool execution succeeded
+
+2. thought: Fetch order details to validate claim.
+   action: get_order({'order_id': 'ORD-1004'})
+   observation: Tool execution succeeded
+
+3. thought: Fetch product-specific policy constraints.
+   action: get_product({'product_id': 'P002'})
+   observation: Tool execution succeeded
+
+4. thought: Policy requires eligibility check before refund.
+   action: check_refund_eligibility({'order_id': 'ORD-1004'})
+   observation: Tool execution succeeded
+
+5. thought: Collect policy snippets for explainable response.
+   action: search_knowledge_base({'query': 'Wrong size delivered'})
+   observation: Tool execution succeeded
