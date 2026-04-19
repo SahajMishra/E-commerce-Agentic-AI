@@ -14,12 +14,8 @@ Ticket: TKT-002
 
 4. thought: Policy requires eligibility check before refund.
    action: check_refund_eligibility({'order_id': 'ORD-1002'})
-   observation: Tool execution failed
-
-5. thought: Policy requires eligibility check before refund.
-   action: check_refund_eligibility({'order_id': 'ORD-1002'})
    observation: Tool execution succeeded
 
-6. thought: Collect policy snippets for explainable response.
+5. thought: Collect policy snippets for explainable response.
    action: search_knowledge_base({'query': 'I want to return my watch'})
    observation: Tool execution succeeded

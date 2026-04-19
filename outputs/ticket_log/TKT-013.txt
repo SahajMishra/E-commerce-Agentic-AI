@@ -14,4 +14,8 @@ Ticket: TKT-013
 
 4. thought: Collect policy snippets for explainable response.
    action: search_knowledge_base({'query': 'Return for bluetooth speaker'})
+   observation: Tool execution failed
+
+5. thought: Collect policy snippets for explainable response.
+   action: search_knowledge_base({'query': 'Return for bluetooth speaker'})
    observation: Tool execution succeeded

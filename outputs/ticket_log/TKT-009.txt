@@ -14,11 +14,11 @@ Ticket: TKT-009
 
 4. thought: Policy requires eligibility check before refund.
    action: check_refund_eligibility({'order_id': 'ORD-1009'})
-   observation: Tool execution succeeded
-
-5. thought: Collect policy snippets for explainable response.
-   action: search_knowledge_base({'query': 'Refund already done?'})
    observation: Tool execution failed
+
+5. thought: Policy requires eligibility check before refund.
+   action: check_refund_eligibility({'order_id': 'ORD-1009'})
+   observation: Tool execution succeeded
 
 6. thought: Collect policy snippets for explainable response.
    action: search_knowledge_base({'query': 'Refund already done?'})

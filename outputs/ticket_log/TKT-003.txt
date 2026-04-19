@@ -14,8 +14,12 @@ Ticket: TKT-003
 
 4. thought: Policy requires eligibility check before refund.
    action: check_refund_eligibility({'order_id': 'ORD-1003'})
+   observation: Tool execution failed
+
+5. thought: Policy requires eligibility check before refund.
+   action: check_refund_eligibility({'order_id': 'ORD-1003'})
    observation: Tool execution succeeded
 
-5. thought: Collect policy snippets for explainable response.
+6. thought: Collect policy snippets for explainable response.
    action: search_knowledge_base({'query': 'Coffee maker stopped working'})
    observation: Tool execution succeeded
